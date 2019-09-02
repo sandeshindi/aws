@@ -130,9 +130,10 @@ public class AmazonDynamoDBSample {
 				 */
 				
 				Table table = dynamoDBMgr.getDynamoDB2().getTable(tableName);
-				ScanSpec scanSpec = new ScanSpec().withProjectionExpression("season")
-											  .withFilterExpression("workingNumber = :workingNumber")
-						                      .withValueMap(new ValueMap().with(":workingNumber", "LM43547"));
+				ScanSpec scanSpec = new ScanSpec().withProjectionExpression("workingNumber, productAtts, season.#t")
+											  .withFilterExpression("workingNumber = :workingNumber AND attribute_exists(season.#t)")
+											  .withNameMap(new NameMap().with("#t", "20151109"))
+											  .withValueMap(new ValueMap().with(":workingNumber", "LM43547"));
 
 				ItemCollection<ScanOutcome> items = table.scan(scanSpec);
 				Iterator<Item> itera = items.iterator();

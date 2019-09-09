@@ -143,6 +143,7 @@ public class FlexAWSProductLoaderTest {
 			loader.loadData(data);
 			AWSConnectionManager.getInstance().deleteItem(FlexAwsConstants.getProperty("productTableName"), "id", "201949-W201928", null, null);
 			assertNull(AWSConnectionManager.getInstance().getItem(FlexAwsConstants.getProperty("productTableName"), "id", "201949-W201928"));
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -12,10 +12,14 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.DeleteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemUtils;
+import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -44,18 +48,16 @@ public class AWSConnectionManager {
 	private static AWSConnectionManager instance = null;
 
 	private AWSConnectionManager() {
-		/*
-		 * ProfileCredentialsProvider credentialsProvider = new
-		 * ProfileCredentialsProvider(); try {
-		 * credentialsProvider.getCredentials(); } catch (Exception e) { throw
-		 * new AmazonClientException(
-		 * "Cannot load the credentials from the credential profiles file. " +
-		 * "Please make sure that your credentials file is at the correct " +
-		 * "location (C:\\Users\\sandesh.indi\\.aws\\credentials), and is in valid format."
-		 * , e); } dynamoDB = AmazonDynamoDBClientBuilder.standard()
-		 * .withCredentials(credentialsProvider) .withRegion("eu-central-1")
-		 * .build();
-		 */
+		
+		/*  ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider(); 
+		  try {
+		  credentialsProvider.getCredentials(); 
+		  } catch (Exception e) { 
+			  throw new AmazonClientException("Cannot load the credentials from the credential profiles file. " +
+		                                       "Please make sure that your credentials file is at the correct " +
+		                                        "location (C:\\Users\\sandesh.indi\\.aws\\credentials), and is in valid format." , e); }
+		  dynamoDB = AmazonDynamoDBClientBuilder.standard().withCredentials(credentialsProvider) .withRegion("eu-central-1").build();*/
+		 
 
 		dynamoDB = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
 				new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-central-1")).build();
@@ -179,6 +181,31 @@ public class AWSConnectionManager {
 		GetItemSpec spec = new GetItemSpec().withPrimaryKey(idKey, id);
 		Item item = dynamoDB2.getTable(tableName).getItem(spec);
 		return item;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public int deleteItem(String tableName, String idKey, String id, String childObjectName, String secondaryId) {
+		logger.debug("tableName:" + tableName);
+		logger.debug("idKey:" + idKey + "** id:" + id + "** childObjectName:" + childObjectName);
+		logger.debug("secondaryId:" + secondaryId);
+		Table table = dynamoDB2.getTable(tableName);
+		if(childObjectName != null) {
+			Item item = this.getItem(tableName, idKey, id);
+			logger.debug("item:" + item);
+			Map<String, Object> itemMap = item.asMap();
+			Map<String, Object> childMap = (Map<String, Object>) itemMap.get(childObjectName);
+			childMap.remove(secondaryId);
+			itemMap.put(childObjectName, childMap);
+			logger.debug("data:" + itemMap);
+			PutItemResult putItemResult = putItem(tableName, itemMap);
+			return putItemResult.hashCode();
+		}
+		else {
+			 DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey(new PrimaryKey(idKey, id));
+			 DeleteItemOutcome outcome = table.deleteItem(deleteItemSpec);
+			 logger.debug("Delete Result: " + outcome.hashCode());
+			 return outcome.hashCode();
+		}
 	}
 	
    public void processBatchItems(String tableName, Collection<Item> items) {

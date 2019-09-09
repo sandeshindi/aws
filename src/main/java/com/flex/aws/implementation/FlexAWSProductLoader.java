@@ -20,6 +20,10 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	public static Logger logger = LogManager.getLogger(FlexAWSProductLoader.class);
 	public static final String PROD_SEAS_EVENT = FlexAwsConstants.getProperty("prodSeasEvent","PRODUCT_SEASON_EVENT");
 	public static final String SKU_SEAS_EVENT = FlexAwsConstants.getProperty("colorwaySeasEvent","COLORWAY_SEASON_EVENT");
+	public static final String SRC_SEAS_EVENT = FlexAwsConstants.getProperty("sourceSeaEvent","SOURCE_SEASON_EVENT");
+	public static final String PROD_SEAS_RMV_EVENT = FlexAwsConstants.getProperty("prodSeasonRemoveEvent","PRODUCT_SEASON_REMOVE_EVENT");
+	public static final String SKU_SEAS_RMV_EVENT = FlexAwsConstants.getProperty("colorwaySeasRemoveEvent","COLORWAY_SEASON_REMOVE_EVENT");
+	public static final String SRC_SEAS_RMV_EVENT = FlexAwsConstants.getProperty("sourceSeasRemoveEvent","SOURCE_SEASON_REMOVE_EVENT");
 	public static final String PAYLOAD_EMPTY_MESSAGE =  FlexAwsConstants.getProperty("payloadEmptyMessage");
 	public static final String PROD_TABLE_NAME = FlexAwsConstants.getProperty("productTableName");
 	public static AWSConnectionManager dynamoDBMgr = AWSConnectionManager.getInstance();
@@ -28,8 +32,7 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	public void loadData(Map<String, Object> data) throws Exception {
 		logger.debug("****FlexAWSProductLoader***start");
 		String event = (String) data.get("event");
-		logger.info(PROD_SEAS_EVENT);
-		
+		logger.info(event);
 		Map<String,Object> payload = (Map<String, Object>) data.get("payload");
 		if(payload == null) {
 			throw new FlexAwsExceptions(PAYLOAD_EMPTY_MESSAGE);
@@ -38,13 +41,49 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 			handleProductSeasonEvent(payload);
 		}
 		else if(SKU_SEAS_EVENT.equals(event)) {
-			System.out.println(SKU_SEAS_EVENT);
 			handleSkuSeasonEvent(payload);
 		}
+		else if(SRC_SEAS_EVENT.equals(event)) {
+			handleSrcSeasonEvent(payload);
+		}
+		else if(PROD_SEAS_RMV_EVENT.equals(event)) {
+			handleRemoveEvent(payload, null);
+		}
+		else if (SKU_SEAS_RMV_EVENT.equals(event)) {
+			handleRemoveEvent(payload, "colorways");
+		}
+		else if (SRC_SEAS_RMV_EVENT.equals(event)) {
+			handleRemoveEvent(payload, "sources");
+		}
+	
 	
 		logger.debug("****FlexAWSProductLoader***end");
 	}
 	
+	public void handleRemoveEvent(Map<String, Object> payload, String childObjectName) {
+		logger.debug("****handleRemoveEvent***start");
+		String idKey = "id";
+		String id = (String) payload.get(idKey);
+		String secondaryId = (String) payload.get("secondaryId");
+		
+		dynamoDBMgr.deleteItem(PROD_TABLE_NAME, idKey, id, childObjectName, secondaryId);
+		
+		
+		logger.debug("****handleRemoveEvent***end");
+	}
+
+	public void handleSrcSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException {
+		logger.debug("****handleSrcSeasonEvent***start");
+		String id = (String) payload.get("id");
+		
+		if(FlexAwsUtil.checkIfTableExists(dynamoDBMgr, PROD_TABLE_NAME, "id")) {
+			dynamoDBMgr.putItem(PROD_TABLE_NAME, "id", id, "sources", payload);
+		}
+		
+		logger.debug("****handleSrcSeasonEvent***end");
+		
+	}
+
 	public void handleSkuSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException {
 		logger.debug("****handleSkuSeasonEvent***start");
 		String id = (String) payload.get("id");
@@ -61,7 +100,6 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	public void handleProductSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException, IllegalArgumentException, JacksonConverterException {
 		logger.debug("****handleProductSeasonEvent***start");
 		String id = (String) payload.get("id");
-		
 		if(FlexAwsUtil.checkIfTableExists(dynamoDBMgr, PROD_TABLE_NAME, "id")) {
 			dynamoDBMgr.putItem(PROD_TABLE_NAME, "id", id, payload);
 		}
@@ -72,7 +110,7 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 
 	public static void main(String[] args) {
 		try {
-			Map<String, Object> data = new ObjectMapper().readValue(new File("E:\\testColorway.json"),
+			Map<String, Object> data = new ObjectMapper().readValue(new File("E:\\testPrdDelete.json"),
 					                                   new TypeReference<Map<String, Object>>(){});
 			
 			new FlexAWSProductLoader().loadData(data);

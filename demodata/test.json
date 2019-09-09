@@ -2,27 +2,27 @@
   "event" : "PRODUCT_SEASON_EVENT",
   "eventTime" : "2019-05-21 12:34:45TZ",
   "payload" : {
-  "id": "201981-2312345W",
+  "id": "201949-W201927",
   "productAtts": {
-    "workingNumber": "2312345W",
-    "productName": "Product new Testing",
-    "brand": "Brand 1",
-    "subBrand": "Sub-Brand 1",
-    "model": "2312",
-    "category": "Category 1",
+    "workingNumber": "W201927",
     "subCategory": "Sub Category 1",
-    "marketingLine": "Marketing Line 1",
     "salesLine": "Sales Line 1",
-    "productSpeciality": "Special"
+    "productSpeciality": "Special 1",
+    "marketingLine": "Marketing Line 1",
+    "subBrand": "Sub-Brand 1",
+    "model": "43546",
+    "category": "Category 1",
+    "brand": "Brand 1",
+    "productName": "Product 1"
   },
   "productSeasonAtts": {
-    "devRegion": [
+    "selllingRegion": [
       "Asia",
       "Europe"
     ],
     "productStatus": "In Development",
     "timeline": "TimeLine 1",
-    "selllingRegion": [
+    "devRegion": [
       "Asia",
       "Europe"
     ]

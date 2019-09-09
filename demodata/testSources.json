@@ -1,0 +1,21 @@
+{
+	"event": "SOURCE_SEASON_EVENT",
+	"eventTime": "2019-05-21 12:34:45TZ",
+	"payload": {
+		"id": "201981-2312345W",
+		"sources": {
+			"201981-2312345W-1SRC1": {
+				"srcAtts": {
+					"factory": "1SRC1",
+					"leadTime": "25"
+				},
+				"srcSeasonAtts": {
+					"productionFeasiblity": "Normal"
+				}
+			},
+			"201981-2312345W-35457-1SRC1": {
+				"productionFeasiblity": "AbNormal"
+			}
+		}
+	}
+}

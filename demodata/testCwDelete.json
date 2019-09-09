@@ -1,0 +1,8 @@
+{
+	"event": "COLORWAY_SEASON_REMOVE_EVENT",
+	"eventTime": "2019-05-21 12:34:45TZ",
+	"payload": {
+		"id": "201981-2312345W",
+		"secondaryId": "201981-2312345W-35457"
+	}
+}

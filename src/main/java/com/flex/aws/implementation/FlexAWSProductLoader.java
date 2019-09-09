@@ -26,6 +26,9 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	public static final String SRC_SEAS_RMV_EVENT = FlexAwsConstants.getProperty("sourceSeasRemoveEvent","SOURCE_SEASON_REMOVE_EVENT");
 	public static final String PAYLOAD_EMPTY_MESSAGE =  FlexAwsConstants.getProperty("payloadEmptyMessage");
 	public static final String PROD_TABLE_NAME = FlexAwsConstants.getProperty("productTableName");
+	public static final String COLORWAY_OBJECT_KEY = FlexAwsConstants.getProperty("colorwayChildObjectKey", "colorways");
+	public static final String SOURCES_OBJECT_KEY = FlexAwsConstants.getProperty("sourceChildObjectKey", "sources");
+	public static final String PROD_ID_KEY = FlexAwsConstants.getProperty("productIDKey", "id");
 	public static AWSConnectionManager dynamoDBMgr = AWSConnectionManager.getInstance();
 	
 	@SuppressWarnings("unchecked")
@@ -50,10 +53,10 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 			handleRemoveEvent(payload, null);
 		}
 		else if (SKU_SEAS_RMV_EVENT.equals(event)) {
-			handleRemoveEvent(payload, "colorways");
+			handleRemoveEvent(payload, COLORWAY_OBJECT_KEY);
 		}
 		else if (SRC_SEAS_RMV_EVENT.equals(event)) {
-			handleRemoveEvent(payload, "sources");
+			handleRemoveEvent(payload, SOURCES_OBJECT_KEY);
 		}
 	
 	
@@ -62,11 +65,10 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	
 	public void handleRemoveEvent(Map<String, Object> payload, String childObjectName) {
 		logger.debug("****handleRemoveEvent***start");
-		String idKey = "id";
-		String id = (String) payload.get(idKey);
+		String id = (String) payload.get(PROD_ID_KEY);
 		String secondaryId = (String) payload.get("secondaryId");
 		
-		dynamoDBMgr.deleteItem(PROD_TABLE_NAME, idKey, id, childObjectName, secondaryId);
+		dynamoDBMgr.deleteItem(PROD_TABLE_NAME, PROD_ID_KEY, id, childObjectName, secondaryId);
 		
 		
 		logger.debug("****handleRemoveEvent***end");
@@ -74,10 +76,10 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 
 	public void handleSrcSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException {
 		logger.debug("****handleSrcSeasonEvent***start");
-		String id = (String) payload.get("id");
+		String id = (String) payload.get(PROD_ID_KEY);
 		
 		if(FlexAwsUtil.checkIfTableExists(dynamoDBMgr, PROD_TABLE_NAME, "id")) {
-			dynamoDBMgr.putItem(PROD_TABLE_NAME, "id", id, "sources", payload);
+			dynamoDBMgr.putItem(PROD_TABLE_NAME, PROD_ID_KEY, id, SOURCES_OBJECT_KEY, payload);
 		}
 		
 		logger.debug("****handleSrcSeasonEvent***end");
@@ -86,10 +88,10 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 
 	public void handleSkuSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException {
 		logger.debug("****handleSkuSeasonEvent***start");
-		String id = (String) payload.get("id");
+		String id = (String) payload.get(PROD_ID_KEY);
 		
 		if(FlexAwsUtil.checkIfTableExists(dynamoDBMgr, PROD_TABLE_NAME, "id")) {
-			dynamoDBMgr.putItem(PROD_TABLE_NAME, "id", id, "colorways", payload);
+			dynamoDBMgr.putItem(PROD_TABLE_NAME, PROD_ID_KEY, id, COLORWAY_OBJECT_KEY, payload);
 		}
 		
 		logger.debug("****handleSkuSeasonEvent***end");
@@ -99,9 +101,9 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 
 	public void handleProductSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException, IllegalArgumentException, JacksonConverterException {
 		logger.debug("****handleProductSeasonEvent***start");
-		String id = (String) payload.get("id");
+		String id = (String) payload.get(PROD_ID_KEY);
 		if(FlexAwsUtil.checkIfTableExists(dynamoDBMgr, PROD_TABLE_NAME, "id")) {
-			dynamoDBMgr.putItem(PROD_TABLE_NAME, "id", id, payload);
+			dynamoDBMgr.putItem(PROD_TABLE_NAME, PROD_ID_KEY, id, payload);
 		}
 		
 		logger.debug("****handleProductSeasonEvent***end");

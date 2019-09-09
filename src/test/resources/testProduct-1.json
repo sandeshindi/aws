@@ -1,0 +1,19 @@
+{
+  "event" : "PRODUCT_SEASON_EVENT",
+  "eventTime" : "2019-05-21 12:34:45TZ",
+  "payload" : {
+  "id": "201949-W201928",
+  "productAtts": {
+    "workingNumber": "W201928",
+    "subCategory": "Sub Category 1",
+    "salesLine": "Sales Line 1",
+    "productSpeciality": "Special 1",
+    "marketingLine": "Marketing Line 1",
+    "subBrand": "Sub-Brand 1",
+    "model": "43546",
+    "category": "Category 1",
+    "brand": "Brand 1",
+    "productName": "Product 1"
+  }
+  }
+}

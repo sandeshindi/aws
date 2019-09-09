@@ -1,0 +1,19 @@
+{
+  "event" : "PRODUCT_SEASON_EVENT",
+  "eventTime" : "2019-05-21 12:34:45TZ",
+  "payload" : {
+  "id": "201949-W201928",
+  "productSeasonAtts": {
+    "selllingRegion": [
+      "Asia",
+      "Europe"
+    ],
+    "productStatus": "In Development",
+    "timeline": "TimeLine 1",
+    "devRegion": [
+      "Asia",
+      "Europe"
+    ]
+  }
+  }
+}

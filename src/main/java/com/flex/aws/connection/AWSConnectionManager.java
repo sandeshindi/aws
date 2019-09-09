@@ -1,8 +1,6 @@
 package com.flex.aws.connection;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -11,14 +9,12 @@ import org.apache.logging.log4j.Logger;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DeleteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemUtils;
 import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
@@ -32,16 +28,12 @@ import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemResult;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
-import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.amazonaws.services.dynamodbv2.util.TableUtils.TableNeverTransitionedToStateException;
-import com.flex.aws.util.JacksonConverter;
-import com.flex.aws.util.JacksonConverterImpl;
 
 public class AWSConnectionManager {
 
 	private AmazonDynamoDB dynamoDB;
-	private JacksonConverter converter;
 	private DynamoDB dynamoDB2;
 	public static Logger logger = LogManager.getLogger(AWSConnectionManager.class);
 
@@ -62,7 +54,6 @@ public class AWSConnectionManager {
 		dynamoDB = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
 				new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-central-1")).build();
 		dynamoDB2 = new DynamoDB(dynamoDB);
-		converter = new JacksonConverterImpl();
 	}
 
 	public static AWSConnectionManager getInstance() {
@@ -71,23 +62,8 @@ public class AWSConnectionManager {
 
 		return instance;
 	}
-
-	public AmazonDynamoDB getDynamoDB() {
-		return dynamoDB;
-	}
 	
 	
-
-	public JacksonConverter getConverter() {
-		return converter;
-	}
-	
-	
-	
-
-	public DynamoDB getDynamoDB2() {
-		return dynamoDB2;
-	}
 
 	public boolean createTableIfNotExists(String tableName, String keyName, KeyType keyType,
 			ScalarAttributeType attributeType, Long readCapacity, Long writeCapacity)
@@ -208,6 +184,7 @@ public class AWSConnectionManager {
 		}
 	}
 	
+   /*	
    public void processBatchItems(String tableName, Collection<Item> items) {
    	  // Add a new item, and delete an existing item, from Thread
        TableWriteItems threadTableWriteItems = new TableWriteItems(tableName)
@@ -231,5 +208,6 @@ public class AWSConnectionManager {
 
        } while (outcome.getUnprocessedItems().size() > 0);
    }
+   */
 
 }

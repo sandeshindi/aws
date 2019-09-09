@@ -1,0 +1,22 @@
+{
+  "event" : "COLORWAY_SEASON_EVENT",
+  "eventTime" : "2019-05-21 12:34:45TZ",
+  "payload" : {
+  "id": "201949-W201928",
+  "colorways": {
+    "201949-W201928-A201849": {
+      "colorwayAtts": {
+        "colorwayNumber": "A201849",
+        "colorwayTest": "Passed",
+        "colorwayName": "Colorway Name changed",
+        "color": "A4345"
+      },
+      "colorwaySeasonAtts": {
+        "devType": "Normal",
+        "colorwayStatus": "In Design",
+        "timeline": "Test"
+      }
+    }
+  }
+  }
+}

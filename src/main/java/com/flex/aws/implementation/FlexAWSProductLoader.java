@@ -1,19 +1,15 @@
 package com.flex.aws.implementation;
 
-import java.io.File;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.services.dynamodbv2.util.TableUtils.TableNeverTransitionedToStateException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.aws.FlexAWSConnector;
 import com.flex.aws.connection.AWSConnectionManager;
 import com.flex.aws.constants.FlexAwsConstants;
 import com.flex.aws.exceptions.FlexAwsExceptions;
-import com.flex.aws.exceptions.JacksonConverterException;
 import com.flex.aws.util.FlexAwsUtil;
 
 public class FlexAWSProductLoader implements FlexAWSConnector {
@@ -37,7 +33,7 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 		String event = (String) data.get("event");
 		logger.info(event);
 		Map<String,Object> payload = (Map<String, Object>) data.get("payload");
-		if(payload == null) {
+		if(payload == null || payload.isEmpty()) {
 			throw new FlexAwsExceptions(PAYLOAD_EMPTY_MESSAGE);
 		}
 		if(PROD_SEAS_EVENT.equals(event)) {
@@ -58,8 +54,6 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 		else if (SRC_SEAS_RMV_EVENT.equals(event)) {
 			handleRemoveEvent(payload, SOURCES_OBJECT_KEY);
 		}
-	
-	
 		logger.debug("****FlexAWSProductLoader***end");
 	}
 	
@@ -99,7 +93,7 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 		
 	}
 
-	public void handleProductSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException, IllegalArgumentException, JacksonConverterException {
+	public void handleProductSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException, IllegalArgumentException {
 		logger.debug("****handleProductSeasonEvent***start");
 		String id = (String) payload.get(PROD_ID_KEY);
 		if(FlexAwsUtil.checkIfTableExists(dynamoDBMgr, PROD_TABLE_NAME, "id")) {
@@ -110,16 +104,4 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	}
 
 
-	public static void main(String[] args) {
-		try {
-			Map<String, Object> data = new ObjectMapper().readValue(new File("E:\\testPrdDelete.json"),
-					                                   new TypeReference<Map<String, Object>>(){});
-			
-			new FlexAWSProductLoader().loadData(data);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.catching(e);
-		}
-	}
-	
 }

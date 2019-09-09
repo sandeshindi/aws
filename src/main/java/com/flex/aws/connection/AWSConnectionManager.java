@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -36,6 +39,7 @@ public class AWSConnectionManager {
 	private AmazonDynamoDB dynamoDB;
 	private JacksonConverter converter;
 	private DynamoDB dynamoDB2;
+	public static Logger logger = LogManager.getLogger(AWSConnectionManager.class);
 
 	private static AWSConnectionManager instance = null;
 
@@ -86,7 +90,12 @@ public class AWSConnectionManager {
 	public boolean createTableIfNotExists(String tableName, String keyName, KeyType keyType,
 			ScalarAttributeType attributeType, Long readCapacity, Long writeCapacity)
 			throws TableNeverTransitionedToStateException, InterruptedException {
-
+		try {
+		TableDescription tableDescription = dynamoDB2.getTable(tableName).describe();
+        logger.info("Table description: " + tableDescription.getTableStatus());
+        return true;
+		}
+		catch(com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException rnfe) {
 		CreateTableRequest createTableRequest = new CreateTableRequest().withTableName(tableName)
 				.withKeySchema(new KeySchemaElement().withAttributeName(keyName).withKeyType(keyType))
 				.withAttributeDefinitions(
@@ -104,12 +113,18 @@ public class AWSConnectionManager {
 		TableDescription tableDescription = dynamoDB.describeTable(describeTableRequest).getTable();
 		System.out.println("Table Description: " + tableDescription);
 		return true;
+		}
 	}
 
 	public PutItemResult putItem(String tableName, String idKey, String id, Map<String, Object> payload) {
+		logger.debug("tableName:" + tableName);
+		logger.debug("idKey:" + idKey + "** id:" + id);
+		logger.debug("payload:" + payload);
 		Item item = this.getItem(tableName, idKey, id);
+		logger.debug("item:" + item);
 		Map<String, Object> data = item == null ? new HashMap<String, Object>() : item.asMap();
 		data.putAll(payload);
+		logger.debug("data:" + data);
 		PutItemResult putItemResult = putItem(tableName, data);
 		return putItemResult;
 
@@ -117,14 +132,36 @@ public class AWSConnectionManager {
 	
 	@SuppressWarnings({ "unchecked" })
 	public PutItemResult putItem(String tableName, String idKey, String id, String childObjectName, Map<String, Object> payload) {
+		logger.debug("tableName:" + tableName);
+		logger.debug("idKey:" + idKey + "** id:" + id + "** childObjectName:" + childObjectName);
+		logger.debug("payload:" + payload);
 		Item item = this.getItem(tableName, idKey, id);
+		logger.debug("item:" + item);
 		Map<String, Object> data = item == null ? new HashMap<String, Object>(payload) : item.asMap();
 		Map<String, Object> childObjectMap = (Map<String, Object>) data.get(childObjectName);
 		if(childObjectMap == null) {
 			childObjectMap = new HashMap<String, Object>();
+			childObjectMap.putAll((Map<String, Object>) payload.get(childObjectName));
+    	}
+		else {
+		    final Map<String,Object> secondaryKeyMap = new HashMap<String,Object>(childObjectMap);
+		    Map<String, Object> payloadSecondarMap = (Map<String, Object>) payload.get(childObjectName);
+		    payloadSecondarMap.forEach((key,value) -> {
+		    	try{
+		    	((Map<String, Object>) secondaryKeyMap.get(key)).putAll((Map<? extends String, ? extends Object>) value);
+		    	}
+		    	catch(NullPointerException e) {
+		    		logger.info("New Child object added--" + payloadSecondarMap.get(key));
+		    		Map<String, Object> newChildObject = new HashMap<String, Object>();
+		    		newChildObject.putAll((Map<? extends String, ? extends Object>) value);
+		    		secondaryKeyMap.put(key, newChildObject);
+ 		    	}
+		    });
+		    childObjectMap.putAll(secondaryKeyMap);
 		}
-		childObjectMap.putAll((Map<String, Object>) payload.get(childObjectName));
+		
 		data.put(childObjectName, childObjectMap);
+		logger.debug("data:" + data);
 		PutItemResult putItemResult = putItem(tableName, data);
 		return putItemResult;
 		
@@ -134,7 +171,7 @@ public class AWSConnectionManager {
 		Map<String, AttributeValue> itemData = ItemUtils.fromSimpleMap(data);
 		PutItemRequest putItemRequest = new PutItemRequest(tableName, itemData);
 		PutItemResult putItemResult = dynamoDB.putItem(putItemRequest);
-		System.out.println("Result: " + putItemResult.hashCode());
+		logger.debug("Result: " + putItemResult.hashCode());
 		return putItemResult;
 	}
 	
@@ -144,7 +181,7 @@ public class AWSConnectionManager {
 		return item;
 	}
 	
-	 public void processBatchItems(String tableName, Collection<Item> items) {
+   public void processBatchItems(String tableName, Collection<Item> items) {
    	  // Add a new item, and delete an existing item, from Thread
        TableWriteItems threadTableWriteItems = new TableWriteItems(tableName)
        .withItemsToPut(items);

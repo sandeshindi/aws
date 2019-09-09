@@ -24,17 +24,17 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 	public static final String PROD_TABLE_NAME = FlexAwsConstants.getProperty("productTableName");
 	public static AWSConnectionManager dynamoDBMgr = AWSConnectionManager.getInstance();
 	
-	@Override
+	@SuppressWarnings("unchecked")
 	public void loadData(Map<String, Object> data) throws Exception {
 		logger.debug("****FlexAWSProductLoader***start");
 		String event = (String) data.get("event");
-		@SuppressWarnings("unchecked")
+		logger.info(PROD_SEAS_EVENT);
+		
 		Map<String,Object> payload = (Map<String, Object>) data.get("payload");
 		if(payload == null) {
 			throw new FlexAwsExceptions(PAYLOAD_EMPTY_MESSAGE);
 		}
 		if(PROD_SEAS_EVENT.equals(event)) {
-			System.out.println(PROD_SEAS_EVENT);
 			handleProductSeasonEvent(payload);
 		}
 		else if(SKU_SEAS_EVENT.equals(event)) {
@@ -42,7 +42,7 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 			handleSkuSeasonEvent(payload);
 		}
 	
-		logger.info("****FlexAWSProductLoader***end");
+		logger.debug("****FlexAWSProductLoader***end");
 	}
 	
 	public void handleSkuSeasonEvent(Map<String, Object> payload) throws TableNeverTransitionedToStateException, InterruptedException {
@@ -72,7 +72,7 @@ public class FlexAWSProductLoader implements FlexAWSConnector {
 
 	public static void main(String[] args) {
 		try {
-			Map<String, Object> data = new ObjectMapper().readValue(new File("E:\\test.json"),
+			Map<String, Object> data = new ObjectMapper().readValue(new File("E:\\testColorway.json"),
 					                                   new TypeReference<Map<String, Object>>(){});
 			
 			new FlexAWSProductLoader().loadData(data);
